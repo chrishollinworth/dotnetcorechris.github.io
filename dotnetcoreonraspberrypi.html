@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content=".NET Core Chris" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,400italic,700italic,700' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Roboto+Condensed:300,300italic,700,700italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/styles/default.min.css">
+      <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.9.0/highlight.min.js"></script>
+
+    <title>.NET Core Chris</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/dotnetcorechris">View on GitHub</a>
+
+          <h1 id="project_title">.NET Core Chris</h1>
+          <h2 id="project_tagline"></h2>
+        </header>
+    </div>
+
+    <section class="outer">
+       <div class="downloads inner">
+      <!--<a href="aboutme.html">About Me</a>-->
+      <a href="dotnetcoreonraspberrypi.html">.NET Core on Raspbery Pi</a>
+        </div>
+    </section>
+
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+
+        <h1>How to install .NET Core on Raspberry Pi</h1>
+        <p>I'm a big fan of Raspberry Pi computers. <a href="https://stevedesmond.ca/blog/net-core-on-arm"> So I found out that a ARM build of .NET Core had been released.</a> I had to try it!.</p>
+        <h3>Items Required</h3>
+        <br>
+      <table>
+        <tr>
+          <th>Item</th>
+          <th>Note</th>
+        </tr>
+        <tr>
+          <td>Raspberry Pi</td>
+          <td>2/3 Model B</td>
+
+        </tr>
+        <tr>
+          <td>microSDHC card</td>
+          <td>Class 6 or Class 10 microSDHC card</td>
+        </tr>
+            <tr>
+          <td>USB Keyboard</td>
+          <td></td>
+        </tr>
+            <tr>
+          <td>Monitor</td>
+          <td></td>
+        </tr>
+        </table>
+ <h3>Install Ubuntu Server Image to SD Card</h3>
+        <p>
+        <p>Start by downloading <a href="https://ubuntu-pi-flavour-maker.org/download/">Ubuntu server for Raspbery Pi</a> </p>
+        <p> I choose the <a href="https://ubuntu-pi-flavour-maker.org/xenial/ubuntu-standard-16.04-server-armhf-raspberry-pi.img.xz.torrent">Ubuntu Server Standard 16.04</a> torrent </p>
+        <p>
+            Extract the img file from the zip and use <a href="https://sourceforge.net/projects/win32diskimager/">Win32 Disk Imager</a> to copy the image to the microsd card.</p>
+
+        <p><h3>Configure Wifi or just use ethernet (Jump to Install .NET Core)</h3> </p>
+        <p>
+        <p> Insert the microSDHC card into the pi and connect the power to boot. (It will take some time to boot into the console - mine took 5 minutes!)
+<p>Login with ubuntu/ubuntu, then configure wireless networking.</p>
+    <p><h4>Option A If you have a internet connection via ethernet.</h4></p>
+        <pre>sudo apt-get install wpasupplicant</pre>
+    <p>
+     <h4>Option B If you don't have a internet connection via ethernet:</h4>
+      <p>
+    Download 
+    <ul>
+   <li> <a href="http://launchpadlibrarian.net/235228881/libnl-3-200_3.2.27-1_armhf.deb">libnl-3-200</a></li>
+    <li><a href="http://launchpadlibrarian.net/235228890/libnl-genl-3-200_3.2.27-1_armhf.deb">libnl-genl-3-200</a></li>
+    <li><a href="http://launchpadlibrarian.net/214270333/libpcsclite1_1.8.14-1ubuntu1_armhf.deb">libpcsclite1</a></li>
+    <li><a href="http://launchpadlibrarian.net/234618750/wpasupplicant_2.4-0ubuntu6_armhf.deb">wpasupplicant</a></li>
+    </ul>
+    and copy onto a FAT32 formatted usb stick.
+    Insert the stick into the and check deviceid
+<pre>sudo fdisk -l
+</pre>
+Create mount point and mount drive (Ubuntu server does not automount ootb)
+<pre>
+sudo mkdir /media/external
+sudo mount -t vfat /dev/sda1 /media/external/
+</pre>    
+Copy the files to the home directory and install:-
+<pre>cp /media/external/*.deb /home/ubuntu/
+sudo dpkg -i /home/ubuntu/libnl-3-200_3.2.27-1_armhf.deb
+sudo dpkg -i /home/ubuntu/libnl-genl-3-200_3.2.27-1_armhf.deb
+sudo dpkg -i /home/ubuntu/libpcsclite1_1.8.14-1ubuntu1_armhf.deb
+sudo dpkg -i /home/ubuntu/wpasupplicant_2.4-0ubuntu6_armhf.deb
+</pre>    
+    <h3>Configure Wifi SSID and Pre Shared Key (PSK)</h3>
+    <pre>sudo nano /etc/network/interfaces</pre>
+        <p>add the following to the file:-
+            <pre>auto wlan0
+iface wlan0 inet dhcp
+wpa-ssid "SSID"
+wpa-psk "WIFIPASSWORD"</pre>
+            Exit nano with Ctrl-X and confirm changes, then reboot.
+            <pre>sudo reboot</pre>
+            Wifi should now be working!!
+        </p>
+
+        <h3>Install .NET Core</h3>
+        <p>Install the prereq packages for .NET Core. & core-setup
+        <pre>sudo apt-get install libunwind8 libunwind8-dev gettext libicu-dev liblttng-ust-dev libcurl4-openssl-dev libssl-dev uuid-dev
+wget https://github.com/dotnet/core-setup/files/716356/dotnet-ubuntu.16.04-arm.1.2.0-beta-001291-00.tar.gz
+mkdir /home/ubuntu/dotnet
+tar -xvf dotnet-ubuntu.16.04-arm.1.2.0-beta-001291-00.tar.gz -C /home/ubuntu/dotnet
+cd dotnet
+</pre>
+     
+        </p>
+
+        <h5>Test the runtime with Hello World!</h5>
+        <h4>Create .NET Core Hello World App </h4>
+        <p>I configured Visual Studio 2015 and created the app <a href="https://www.microsoft.com/net/core#windowsvs2015">using instructions here</a>
+
+        My helloworld app consisted of:
+        <pre>using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace helloworld
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            Console.Write("Hello World!!" + Environment.NewLine);
+        }
+    }
+}</pre>
+       <p>Publish the helloworld app using Build -> Publish and open helloworld.runtimeconfig.json to edit the version field to the .NET Core on the target pi (run ./dotnet --version to find out)</p>
+        <pre>{
+  "runtimeOptions": {
+    "framework": {
+      "name": "Microsoft.NETCore.App",
+      "version": "1.2.0-beta-001291-00"
+    }
+  }
+}</pre>
+      <p>Then copy the published files to /home/ubuntu/helloworld <a href="https://winscp.net/eng/download.php">using winSCP</a> </p>
+
+       To test the app!
+<pre>./dotnet /home/ubuntu/helloworld/helloworld.dll
+Hello World!!</pre>
+<p> You now have .NET Core running on a Raspberry Pi!! Enjoy!</p>
+
+<p> Next Task is to setup ASP.NET by following <a href="http://coderscoffeehouse.com/tech/2016/08/19/real-world-aspnetcore-linux-example.html"> this article </a>
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p><a href="https://twitter.com/dotnetcorechris">Twitter</a></p>
+      </footer>
+    </div>
+
+  </body>
+</html>
